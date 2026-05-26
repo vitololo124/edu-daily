@@ -4,6 +4,10 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch:
 
+# 关键：添加写入权限，让机器人能创建gh-pages分支
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,10 +29,11 @@ jobs:
         env:
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
 
-      # 重点：直接部署，不往主分支提交、不git push，彻底避开128错误
-      - name: 部署到 Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # 重点：自动创建并部署到gh-pages分支
+      - name: 部署到Pages（自动创建gh-pages）
+        uses: peaceiris/actions-gh-pages@v4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
-          branch: gh-pages
+          force_orphan: true  # 强制创建独立分支，避免权限冲突
+          publish_branch: gh-pages  # 明确指定部署分支
